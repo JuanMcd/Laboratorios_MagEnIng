@@ -240,7 +240,7 @@ void loop()
 }
 
 /***********************************************************************************************************
-*                            FUNCIÓN LOOP                                                                  *
+*                            FUNCIÓN PARA MEDIR Y ENVIAR DATOS                                             *
 ************************************************************************************************************/
 
 //Con esta función se miden los valores de temperatura y humedad, se envían y se estable la acción de control del ventilador
