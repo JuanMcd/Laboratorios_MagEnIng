@@ -37,13 +37,12 @@ void control_LED(int Elem, int PIN_ELEM, boolean &estado){
   Serial.println(Elemento+" es "+text);
 }
 
-
 /***********************************************************************************************************
 *                              DEFINICIÓN DE VARIAABLES, CONSTANTES Y OBJETOS                              *
 ************************************************************************************************************/
 #define LIMITE_POR_DEFECTO 20    
 float Limite = LIMITE_POR_DEFECTO;
-//credenciales BLE para la conexión WiFi
+//Credenciales para la conexión a la red WiFi
 const char *SSID = "JuanMCD";
 const char *SSIDpass = "1234567890";
 
@@ -55,13 +54,11 @@ static uint8_t PIN_VENTILADOR = 19;
 static uint8_t LED1 = 2;
 static uint8_t LED2 = 4;
 
-//definición de estados iniciales
 bool ESTADO_LED1 = false;
 bool ESTADO_LED2 = false;
 bool ESTADO_HUMIDIFICADOR = false;
 bool CONECTADO_A_WIFI = false;
 
-//definición de un objeto de tipo DHT
 DHT dht(DHT_PIN, DHT11);
 
 //definición de un objeto de tipo SimpleTimer
@@ -86,10 +83,8 @@ static Switch selector(Selector, &LED1);
 ************************************************************************************************************/
 void sysProvEvent(arduino_event_t *sys_event)
 {
-  //switch para diferentes tipos de eventos
   switch (sys_event->event_id)
   {
-  //inicio del aprovisamiento
   case ARDUINO_EVENT_PROV_START:
 #if CONFIG_IDF_TARGET_ESP32
     Serial.printf("\nProvisioning Started with name \"%s\" and SSIDpass \"%s\" on BLE\n", SSID, SSIDpass);
@@ -104,10 +99,8 @@ void sysProvEvent(arduino_event_t *sys_event)
     CONECTADO_A_WIFI = true;
     delay(500);
     break;
-  //caso para cuando hay recepción de credenciales  durante el aprovisamiento
   case ARDUINO_EVENT_PROV_CRED_RECV:
   {
-    //impresión del mensaje que inidca que se han recibido credenciales
     Serial.println("\nReceived Wi-Fi credentials");
     Serial.print("\tSSID : ");
     Serial.println((const char *)sys_event->event_info.prov_cred_recv.ssid);
@@ -115,11 +108,8 @@ void sysProvEvent(arduino_event_t *sys_event)
     Serial.println((char const *)sys_event->event_info.prov_cred_recv.password);
     break;
   }
-  //caso para la inicialización del aprovisamiento
   case ARDUINO_EVENT_PROV_INIT:
     wifi_prov_mgr_disable_auto_stop(10000);
-    break;
-  //caso del aprovisamiento de credenciales
   case ARDUINO_EVENT_PROV_CRED_SUCCESS:
     wifi_prov_mgr_stop_provisioning();
     break;
@@ -132,7 +122,7 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
   const char *device_name = device->getDeviceName();
   Serial.println(device_name);
   const char *param_name = param->getParamName();
-  
+
   if (strcmp(device_name, "LED2") == 0){
     if (strcmp(param_name, "Power") == 0){
       Serial.printf("Received value = %s for %s - %s\n", val.val.f ? "true" : "false", device_name, param_name);
@@ -141,9 +131,7 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       param->updateAndReport(val);
     }
   }
-
   //__________________________________________________________________________________________
-
   else if(strcmp(device_name, "Selector") == 0) {
     if(strcmp(param_name, "Power") == 0) {
     }else if (strcmp(param_name, "Level") == 0) {
@@ -153,13 +141,17 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       delay(15); 
       }
     }
-
   //__________________________________________________________________________________________
   else if (strcmp(device_name, "Humidificador") == 0){
     if (strcmp(param_name, "Power") == 0){
       Serial.printf("Received value = %s for %s - %s\n", val.val.b ? "true" : "false", device_name, param_name);
       ESTADO_HUMIDIFICADOR = val.val.b;
       (ESTADO_HUMIDIFICADOR == false) ? digitalWrite(PIN_HUMIDIFICADOR, LOW) : digitalWrite(PIN_HUMIDIFICADOR, HIGH);
+      if(ESTADO_HUMIDIFICADOR == true){
+        Serial.println("Humidificador Activado");
+      }else{
+        Serial.println("Humidificador Desactivado");
+      }
       param->updateAndReport(val);
     }
   }
@@ -181,7 +173,7 @@ void setup()
 
 //Crear parámetro de nivel mediante un slider asociado el dispositivo Selector
   Param level_param("Level", "custom.param.level", value(LIMITE_POR_DEFECTO), PROP_FLAG_READ | PROP_FLAG_WRITE);
-  level_param.addBounds(value(13), value(35), value(1)); //sart_value, end_value, interval
+  level_param.addBounds(value(13), value(35), value(1));
   level_param.addUIType(ESP_RMAKER_UI_SLIDER);
   selector.addParam(level_param);
 
@@ -255,8 +247,8 @@ void loop()
 void enviarTemperaturayHumedad(){
   //float temperaturaMedida = dht.readTemperature();
   //float humedadMedida = dht.readHumidity();
-  float temperaturaMedida = random(18,45);
-  float humedadMedida = random(0,100);
+  float temperaturaMedida = random(21,23);
+  float humedadMedida = random(80,82);
   Serial.print("Temperatura:");
   Serial.print(temperaturaMedida);
   Serial.print(" | Humedad - ");
